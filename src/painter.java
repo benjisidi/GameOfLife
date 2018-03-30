@@ -10,8 +10,20 @@ import java.awt.event.KeyEvent;
 
 /*
         ToDo:
+            Bug fixing
+                Fix "new future" behaviour
+                Fix stepping breaking FPS
+
             Add seeding
-            Add controls - space to play/pause, arrow keys for one step back/forward, up/down for rate
+            Add controls:
+                sp  play/pause
+                c   clear board
+                g   show/hide grid
+                m1  toggle cell
+                []  increment/decrement random %
+                r   randomise board
+                LR  step forward back (remember 10/100/1000 states)
+                UD  control fps - x
             Add status bar with rate, generation etc
             Add mouse control for toggling cells
             Make resolution/cell dims intelligent to cope with any combination
@@ -20,45 +32,37 @@ import java.awt.event.KeyEvent;
 
 
 class Surface extends JPanel implements ActionListener {
-    private int canvasWidth;
-    private int canvasHeight;
-    private int cellDims;
-    private GameOfLife GoL;
-    public Timer timer;
-    private int refreshDelay;
+    Timer timer;
+    private state status;
 
-
-    public Surface(int width, int height, int cellDims, int refreshDelay, GameOfLife _GoL)  {
-        this.canvasWidth = width;
-        this.canvasHeight = height;
-        this.cellDims = cellDims;
-        this.GoL = _GoL;
-        this.refreshDelay = refreshDelay;
-        this.setPreferredSize(new Dimension(this.canvasWidth, this.canvasHeight));
+    Surface(state status)  {
+        this.status = status;
+        this.setPreferredSize(new Dimension(this.status.canvasWidth, this.status.canvasHeight));
         initTimer();
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        DrawCanvas(g, this.GoL);
+        DrawCanvas(g, this.status.GoL);
     }
 
     private void DrawCanvas(Graphics g, GameOfLife _GoL) {
         Graphics2D g2d = (Graphics2D) g;
         g.setColor(Color.DARK_GRAY);
-        g.fillRect(0,0, this.canvasWidth, this.canvasHeight);
-        for (int i=0;i<_GoL.getCells().length;i++) {
-            for (int j=0;j<_GoL.getCells()[0].length;j++) {
-                if (_GoL.getCells()[i][j] == 1) {
-                    drawCell(g2d, j * this.cellDims, i * this.cellDims, this.cellDims, this.cellDims);
+        g.fillRect(0,0, this.status.canvasWidth, this.status.canvasHeight);
+        for (int i=0;i<_GoL.getCells()[0].length;i++) {
+            for (int j=0;j<_GoL.getCells()[0][0].length;j++) {
+                if (_GoL.getCells()[this.status.displayIndex][i][j] == 1) {
+                    drawCell(g2d, j * this.status.cellDims, i * this.status.cellDims,
+                                                this.status.cellDims, this.status.cellDims);
                 }
             }
         }
     }
 
     private void initTimer() {
-        this.timer = new Timer(refreshDelay, this);
+        this.timer = new Timer(this.status.refreshDelay, this);
         //timer.start();
     }
 
@@ -70,14 +74,37 @@ class Surface extends JPanel implements ActionListener {
         g.drawRect(x, y, width, height);
     }
 
-    public void update() {
-        this.GoL.updateCells();
+    void update() {
+        this.status.GoL.updateCells();
         repaint();
+    }
+
+    void setIndex(int index) {
+        this.status.displayIndex = index;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         update();
+    }
+}
+
+class state {
+    final int canvasWidth;
+    final int canvasHeight;
+    int refreshDelay;
+    int cellDims;
+    int displayIndex;
+    GameOfLife GoL;
+
+
+    state(int width, int height, int cellDims, int refreshDelay, int displayIndex, GameOfLife _GoL) {
+        this.canvasWidth = width;
+        this.canvasHeight = height;
+        this.cellDims = cellDims;
+        this.refreshDelay = refreshDelay;
+        this.displayIndex = displayIndex;
+        this.GoL = _GoL;
     }
 }
 
@@ -88,20 +115,23 @@ public class painter extends JFrame {
     private int resolution = 160;
     private int fps = 20;
     private int refreshDelay = (int) ((1.0/ fps) * 1000);
-    private int[][] curBoardState;
-    private int[][][] pastBoardStates;
     private int onFrac = 30;
     private GameOfLife GoL = new GameOfLife(canvasWidth, canvasHeight, resolution, onFrac);
     private int cellDims = canvasWidth / resolution;
-    Surface paintSurface;
+    private Surface paintSurface;
+    private boolean running = false;
+    private int displayIndex = 0;
+    private state status = new state(canvasWidth, canvasHeight, cellDims, refreshDelay, displayIndex, GoL);
 
-    public painter() {
+
+
+    private painter() {
         super("Conway's Game of Life in Java");
         initUI();
     }
 
     private void initUI() {
-        paintSurface = new Surface(this.canvasWidth, this.canvasHeight, this.cellDims, this.refreshDelay, this.GoL);
+        paintSurface = new Surface(this.status);
         add(paintSurface);
         addKeyListener(new Controller());
         setLocationRelativeTo(null);
@@ -110,13 +140,57 @@ public class painter extends JFrame {
     }
 
 
-    public void toggleTimer() {
-        if (this.paintSurface.timer.isRunning()) this.paintSurface.timer.stop();
-        else this.paintSurface.timer.start();
+    private void toggleTimer() {
+        if (this.paintSurface.timer.isRunning()) {
+            this.paintSurface.timer.stop();
+            this.running = false;
+        }
+        else {
+            this.paintSurface.timer.start();
+            this.running = true;
+            this.displayIndex = 0;
+            this.paintSurface.setIndex(this.displayIndex);
+        }
+
+    }
+
+
+    private void newBranch() {
+        int [][][] currCells = this.GoL.getCells();
+        int cellDimsM = currCells[0].length;
+        int cellDimsX = currCells[1].length;
+        int cellDimsY = currCells[2].length;
+        int[][][] dummyMem = new int[cellDimsM][cellDimsX][cellDimsY];
+
+        System.arraycopy(currCells, this.displayIndex, dummyMem,
+                this.displayIndex, cellDimsM - this.displayIndex);
+        this.GoL.setCells(dummyMem);
+    }
+
+    private boolean isRunning() {
+        return this.running;
     }
 
     private void updateBoard() {
         this.paintSurface.update();
+    }
+
+    private void stepBack() {
+        if (this.displayIndex + 1 < this.GoL.getMemory()) {
+            this.displayIndex += 1;
+            this.paintSurface.setIndex(this.displayIndex);
+            this.paintSurface.repaint();
+        }
+        System.out.print(this.displayIndex + " ");
+    }
+
+    private void stepForward() {
+        if (this.displayIndex > 0) {
+            this.displayIndex -= 1;
+            this.paintSurface.setIndex(this.displayIndex);
+            this.paintSurface.repaint();
+        }
+        System.out.print(this.displayIndex + " ");
     }
 
     private void setFPS (int val) {
@@ -134,23 +208,29 @@ public class painter extends JFrame {
             switch (keycode) {
 
                 case KeyEvent.VK_SPACE:
-                    toggleTimer();
+                    painter.this.toggleTimer();
                     break;
 
                 case KeyEvent.VK_RIGHT:
-                    updateBoard();
+                    if (! painter.this.isRunning() && painter.this.displayIndex == 0) painter.this.updateBoard();
+                    else painter.this.stepForward();
                     break;
 
+                case KeyEvent.VK_LEFT:
+                    if (! painter.this.isRunning()) painter.this.stepBack();
+
                 case KeyEvent.VK_UP:
-                    setFPS(fps + 1);
+                    setFPS(painter.this.fps + 1);
                     break;
 
                 case KeyEvent.VK_DOWN:
-                    setFPS(fps - 1);
+                    setFPS(painter.this.fps - 1);
                     break;
 
                 case KeyEvent.VK_ESCAPE:
                     System.exit(0);
+
+
             }
         }
     }

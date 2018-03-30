@@ -11,7 +11,8 @@ public class GameOfLife {
     private int nRows;
     private int nCols;
     private float onFrac;
-    private int[][] cells;
+    private int[][][] cells;
+    private int memory = 100;
 
     public GameOfLife(int width, int height, int res, int frac) {
 
@@ -22,7 +23,7 @@ public class GameOfLife {
         this.nRows = canvasHeight / cellDims;
         this.nCols = resolution;
         this.onFrac = frac;
-        this.cells = new int[nRows][nCols];
+        this.cells = new int[memory][nRows][nCols];
 
         // Initialize cells with random selection turned 'on'
         Random cellChecker = new Random();
@@ -30,18 +31,28 @@ public class GameOfLife {
             for (int row = 0; (row < nRows); row++) {
                 int checkN = cellChecker.nextInt(100);
                 if (checkN < onFrac) {
-                    this.cells[row][col] = 1;
+                    this.cells[0][row][col] = 1;
                 }
                 else {
-                    this.cells[row][col] = 0;
+                    this.cells[0][row][col] = 0;
                 }
             }
         }
     }
 
 
-    public int[][] getCells(){
+    int getMemory() {
+        return this.memory;
+    }
+
+    int[][][] getCells(){
         return this.cells;
+    }
+
+    void setCells(int [][][] newCells) {this.cells = newCells; }
+
+    public void clearBoard() {
+        this.cells = new int[memory][nRows][nCols];
     }
 
     private int countNeighbours(int col, int row) {
@@ -49,7 +60,7 @@ public class GameOfLife {
         for (int x = col-1; x<col+2; x++) {
             for (int y = row-1; y<row+2; y++) {
                 if (x>=0 && x<nCols && y>=0 && y<nRows && !(y == row && x == col)) {
-                    if (this.cells[y][x] == 1 ) {
+                    if (this.cells[0][y][x] == 1 ) {
                         count ++;
                     }
                 }
@@ -63,7 +74,7 @@ public class GameOfLife {
         for (int col=0; (col < nCols); col++) {
             for (int row = 0; (row < nRows); row++) {
                 int neighbours = countNeighbours(col, row);
-                boolean live = (this.cells[row][col] != 0);
+                boolean live = (this.cells[0][row][col] != 0);
                 if (live) {
                     if (neighbours < 2 || neighbours > 3) {
                         dummy[row][col] = 0; // Dies by starvation or overpopulation
@@ -79,7 +90,13 @@ public class GameOfLife {
                 }
             }
         }
-        this.cells = dummy;
+
+        // Shift everything down one
+        for (int i=this.memory-1; i>0; i--){
+            this.cells[i] = this.cells[i-1];
+        }
+        // Replace top frame with dummy
+        this.cells[0] = dummy;
     }
 
 
