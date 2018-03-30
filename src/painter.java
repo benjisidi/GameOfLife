@@ -4,6 +4,8 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 
 /*
@@ -22,7 +24,7 @@ class Surface extends JPanel implements ActionListener {
     private int canvasHeight;
     private int cellDims;
     private GameOfLife GoL;
-    private Timer timer;
+    public Timer timer;
     private int refreshDelay;
 
 
@@ -44,7 +46,7 @@ class Surface extends JPanel implements ActionListener {
 
     private void DrawCanvas(Graphics g, GameOfLife _GoL) {
         Graphics2D g2d = (Graphics2D) g;
-        g.setColor(Color.BLACK);
+        g.setColor(Color.DARK_GRAY);
         g.fillRect(0,0, this.canvasWidth, this.canvasHeight);
         for (int i=0;i<_GoL.getCells().length;i++) {
             for (int j=0;j<_GoL.getCells()[0].length;j++) {
@@ -57,8 +59,9 @@ class Surface extends JPanel implements ActionListener {
 
     private void initTimer() {
         this.timer = new Timer(refreshDelay, this);
-        timer.start();
+        //timer.start();
     }
+
 
     private void drawCell(Graphics g, int x, int y, int width, int height) {
         g.setColor(Color.WHITE); // Main Cell
@@ -67,14 +70,14 @@ class Surface extends JPanel implements ActionListener {
         g.drawRect(x, y, width, height);
     }
 
-    private void update() {
+    public void update() {
         this.GoL.updateCells();
+        repaint();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         update();
-        repaint();
     }
 }
 
@@ -90,6 +93,7 @@ public class painter extends JFrame {
     private int onFrac = 30;
     private GameOfLife GoL = new GameOfLife(canvasWidth, canvasHeight, resolution, onFrac);
     private int cellDims = canvasWidth / resolution;
+    Surface paintSurface;
 
     public painter() {
         super("Conway's Game of Life in Java");
@@ -97,10 +101,58 @@ public class painter extends JFrame {
     }
 
     private void initUI() {
-        add(new Surface(this.canvasWidth, this.canvasHeight, this.cellDims, this.refreshDelay, this.GoL));
+        paintSurface = new Surface(this.canvasWidth, this.canvasHeight, this.cellDims, this.refreshDelay, this.GoL);
+        add(paintSurface);
+        addKeyListener(new Controller());
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
+    }
+
+
+    public void toggleTimer() {
+        if (this.paintSurface.timer.isRunning()) this.paintSurface.timer.stop();
+        else this.paintSurface.timer.start();
+    }
+
+    private void updateBoard() {
+        this.paintSurface.update();
+    }
+
+    private void setFPS (int val) {
+        if (val <= 0) val = 1;
+        this.fps = val;
+        this.refreshDelay =  (int) ((1.0/ fps) * 1000);
+        this.paintSurface.timer.setDelay(refreshDelay);
+    }
+
+    class Controller extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+            int keycode = e.getKeyCode();
+            switch (keycode) {
+
+                case KeyEvent.VK_SPACE:
+                    toggleTimer();
+                    break;
+
+                case KeyEvent.VK_RIGHT:
+                    updateBoard();
+                    break;
+
+                case KeyEvent.VK_UP:
+                    setFPS(fps + 1);
+                    break;
+
+                case KeyEvent.VK_DOWN:
+                    setFPS(fps - 1);
+                    break;
+
+                case KeyEvent.VK_ESCAPE:
+                    System.exit(0);
+            }
+        }
     }
 
 
