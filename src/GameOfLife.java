@@ -6,7 +6,7 @@ public class GameOfLife {
     // Declare set-up variables
     private int canvasWidth;
     private int canvasHeight;
-    private int resolution; // # of cells in a row ToDo: make this more intelligent to cope with any res
+    private int resolution;
     private int cellDims;
     private int nRows;
     private int nCols;
@@ -18,13 +18,12 @@ public class GameOfLife {
         this.canvasWidth = width;
         this.canvasHeight = height;
         this.resolution = res;
-
-
         this.cellDims = canvasWidth / resolution;
         this.nRows = canvasHeight / cellDims;
         this.nCols = resolution;
         this.onFrac = frac;
         this.cells = new int[nRows][nCols];
+
         // Initialize cells with random selection turned 'on'
         Random cellChecker = new Random();
         for (int col=0; (col < nCols); col++) {
@@ -43,14 +42,6 @@ public class GameOfLife {
 
     public int[][] getCells(){
         return this.cells;
-    }
-
-
-    private void startGame() {
-        /* ToDo:
-            Generate random coords as starting positions - maybe this goes in init()
-            Also need array to do logic on cells
-        */
     }
 
     private int countNeighbours(int col, int row) {

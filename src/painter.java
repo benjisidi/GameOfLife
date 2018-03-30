@@ -4,14 +4,10 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.concurrent.TimeUnit;
-import javax.swing.Timer;
-
 
 
 /*
-        ToDo/Plan:
-            Figure out why window is slightly misaligned
+        ToDo:
             Add seeding
             Add controls - space to play/pause, arrow keys for one step back/forward, up/down for rate
             Add status bar with rate, generation etc
@@ -36,37 +32,38 @@ class Surface extends JPanel implements ActionListener {
         this.cellDims = cellDims;
         this.GoL = _GoL;
         this.refreshDelay = refreshDelay;
+        this.setPreferredSize(new Dimension(this.canvasWidth, this.canvasHeight));
         initTimer();
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(Color.BLACK);
-        g.fillRect(0,0, this.canvasWidth, this.canvasHeight);
         DrawCanvas(g, this.GoL);
     }
 
     private void DrawCanvas(Graphics g, GameOfLife _GoL) {
         Graphics2D g2d = (Graphics2D) g;
+        g.setColor(Color.BLACK);
+        g.fillRect(0,0, this.canvasWidth, this.canvasHeight);
         for (int i=0;i<_GoL.getCells().length;i++) {
             for (int j=0;j<_GoL.getCells()[0].length;j++) {
                 if (_GoL.getCells()[i][j] == 1) {
-                    drawCell(g2d, j * cellDims, i * cellDims, cellDims, cellDims);
+                    drawCell(g2d, j * this.cellDims, i * this.cellDims, this.cellDims, this.cellDims);
                 }
             }
         }
     }
 
     private void initTimer() {
-        timer = new Timer(refreshDelay, this);
+        this.timer = new Timer(refreshDelay, this);
         timer.start();
     }
 
     private void drawCell(Graphics g, int x, int y, int width, int height) {
         g.setColor(Color.WHITE); // Main Cell
         g.fillRect(x, y, width, height);
-        g.setColor(Color.BLACK); // Nice Border
+        g.setColor(Color.DARK_GRAY); // Nice Border
         g.drawRect(x, y, width, height);
     }
 
@@ -83,10 +80,10 @@ class Surface extends JPanel implements ActionListener {
 
 public class painter extends JFrame {
 
-    private final int canvasWidth = 800;
-    private final int canvasHeight = 600;
-    private int resolution = 40; // # of cells in a row ToDo: make this more intelligent to cope with any res
-    private int fps = 2;
+    private final int canvasWidth = 2560;
+    private final int canvasHeight = 1440;
+    private int resolution = 160;
+    private int fps = 20;
     private int refreshDelay = (int) ((1.0/ fps) * 1000);
     private int[][] curBoardState;
     private int[][][] pastBoardStates;
@@ -95,16 +92,15 @@ public class painter extends JFrame {
     private int cellDims = canvasWidth / resolution;
 
     public painter() {
-        System.out.println(this.refreshDelay);
+        super("Conway's Game of Life in Java");
         initUI();
     }
 
     private void initUI() {
         add(new Surface(this.canvasWidth, this.canvasHeight, this.cellDims, this.refreshDelay, this.GoL));
-        setTitle("Conway's Game of Life in Java");
-        setSize(this.canvasWidth, this.canvasHeight);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        pack();
     }
 
 
