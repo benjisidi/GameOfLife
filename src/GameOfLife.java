@@ -1,7 +1,7 @@
 
 import java.util.Arrays;
 import java.util.Random;
-
+//ToDo: Refactor to replace snippets with newStackFromFrame in initializer, clearCells and randomizeCells.
 public class GameOfLife {
     // Declare set-up variables
     private int canvasWidth;
@@ -158,6 +158,29 @@ public class GameOfLife {
         this.cells = newCells;
     }
 
+    void newStackFromFrame(int[][] frame) {
+        int [][][] newCells = new int[memory][nRows][nCols];
+        newCells[0] = frame;
+
+        // Initialize unused frames with 999 so they can be identified.
+        for (int i = 1; i < memory; i++) {
+            for (int col = 0; (col < nCols); col++) {
+                for (int row = 0; (row < nRows); row++) {
+                    newCells[i][row][col] = 999;
+                }
+            }
+        }
+
+        this.cells = newCells;
+    }
+
+    void setElement(int x, int i, int k, int j){
+        this.cells[i][j][k] = x;
+    }
+
+    int getElement(int i, int k, int j){
+        return this.cells[i][j][k];
+    }
 
     private void printRaw(){
         String outstr = Arrays.deepToString(this.cells).replace("], ", "]\n");

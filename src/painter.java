@@ -145,8 +145,8 @@ public class painter extends JFrame {
         add(paintSurface);
         addKeyListener(new KeyController());
         MouseController mouseControls = new MouseController();
-        addMouseListener(mouseControls);
-        addMouseMotionListener(mouseControls);
+        this.getContentPane().addMouseListener(mouseControls);
+        this.getContentPane().addMouseMotionListener(mouseControls);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
@@ -228,7 +228,21 @@ public class painter extends JFrame {
         System.arraycopy(stack,this.status.getDisplayIndex(),newStack,0,newStack.length-this.status.getDisplayIndex());
         this.GoL.setCells(newStack);
         this.status.setDisplayIndex(0);
-    }//ToDo: finish writing this
+    }
+
+    private void toggleCell(int x, int y) {
+        int index = this.status.getDisplayIndex();
+        int cellValue = this.GoL.getElement(index, x, y);
+        int newValue = Math.abs(cellValue - 1); // Gives 1 if 0, 0 if 1
+        this.GoL.setElement(newValue, index, x, y);
+    }
+
+    private void setCell(int x, int y, int value) {
+        int index = this.status.getDisplayIndex();
+        this.GoL.setElement(value, index, x, y);
+    }
+
+
 
     class KeyController extends KeyAdapter {
         @Override
@@ -285,12 +299,11 @@ public class painter extends JFrame {
 
 
     class MouseController extends MouseInputAdapter {
-        boolean mouseInWindow;
         boolean mouseActive;
-        ArrayList visited;
+        int paintValue;
+
         // Register for mouse events on paintSurface
         void MouseController() {
-            this.mouseInWindow = false;
             this.mouseActive=false;
             painter.this.paintSurface.addMouseListener(this);
             addMouseListener(this);
@@ -299,39 +312,40 @@ public class painter extends JFrame {
 
         // Function to convert mouse pixel values to array coordinates
         int[] pixelsToCell(int x, int y){
-            return new int[] {(int)Math.ceil((float)x/painter.this.cellDims), (int)Math.ceil((float)y/painter.this.cellDims)};
-        }
-
-        public void mouseEntered(MouseEvent e) {
-            this.mouseInWindow = true;
-            System.out.println("Mouse entered window");
-        }
-
-        public void mouseExited(MouseEvent e) {
-            this.mouseInWindow = false;
-            System.out.println("Mouse exited window");
+            return new int[] {Math.max(0, (int)Math.ceil((float)x/painter.this.cellDims-1)),
+                              Math.max(0, (int)Math.ceil((float)y/painter.this.cellDims-1))};
         }
 
         public void mousePressed(MouseEvent e) {
             this.mouseActive = true;
-            System.out.println("Mouse pressed");
+            int x = e.getX();
+            int y = e.getY();
+            int[] cellClicked = pixelsToCell(x, y);
+            int index = painter.this.status.getDisplayIndex();
+            int clickedValue = painter.this.GoL.getElement(index, cellClicked[0], cellClicked[1]);
+            int toggledValue =  Math.abs(clickedValue - 1);
+            painter.this.setCell(cellClicked[0], cellClicked[1], toggledValue);
+            this.paintValue = toggledValue;
+            painter.this.paintSurface.repaint();
         }
 
         public void mouseReleased(MouseEvent e) {
             this.mouseActive = false;
-            System.out.println("Mouse released");
-        }
-
-        public void mouseClicked(MouseEvent e) {
-            int x = e.getX();
-            int y = e.getY();
-            int[] coords = pixelsToCell(x, y);
-            System.out.printf("\nMouse clicked.\nCoordinates are %d, %d\nSquare side Length is %d", x, y, painter.this.cellDims);
-            System.out.printf("\nCalculated coordinates are %d, %d", coords[0], coords[1]);
+            int index = painter.this.status.getDisplayIndex();
+            int[][] frame = painter.this.GoL.getCells()[index];
+            painter.this.GoL.newStackFromFrame(frame);
+            painter.this.status.setDisplayIndex(0);
+            painter.this.paintSurface.repaint();
         }
 
         public void mouseDragged(MouseEvent e) {
-            System.out.println("Mouse is being dragged");
+            int x = e.getX();
+            int y = e.getY();
+            if (x >= 0 && x < painter.this.canvasWidth && y >= 0 && y < painter.this.canvasHeight) {
+                int[] cellClicked = pixelsToCell(x, y);
+                painter.this.setCell(cellClicked[0], cellClicked[1], this.paintValue);
+                painter.this.paintSurface.repaint();
+            }
         }
     }
 
