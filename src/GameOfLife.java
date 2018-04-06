@@ -12,7 +12,7 @@ public class GameOfLife {
     private int nCols;
     private float onFrac;
     private int[][][] cells;
-    private int memory = 100;
+    private int memory = 1000;
 
     public GameOfLife(int width, int height, int res, int frac) {
 
@@ -27,22 +27,32 @@ public class GameOfLife {
 
         // Initialize cells with random selection turned 'on'
         Random cellChecker = new Random();
-        for (int col=0; (col < nCols); col++) {
+        for (int col = 0; (col < nCols); col++) {
             for (int row = 0; (row < nRows); row++) {
                 int checkN = cellChecker.nextInt(100);
                 if (checkN < onFrac) {
                     this.cells[0][row][col] = 1;
-                }
-                else {
+                } else {
                     this.cells[0][row][col] = 0;
                 }
             }
         }
+
+        // Initialize unused frames with 999 so they can be identified.
+        for (int i = 1; i < memory; i++) {
+            for (int col = 0; (col < nCols); col++) {
+                for (int row = 0; (row < nRows); row++) {
+                    cells[i][row][col] = 999;
+                }
+            }
+        }
+
+        System.out.println(this.cells[2][0][0]);
     }
 
 
     int getMemory() {
-        return this.memory;
+        return  this.memory;
     }
 
     int[][][] getCells(){
@@ -92,11 +102,60 @@ public class GameOfLife {
         }
 
         // Shift everything down one
+        System.arraycopy(this.cells,0, this.cells, 1, this.memory-1);
+        /*
         for (int i=this.memory-1; i>0; i--){
             this.cells[i] = this.cells[i-1];
         }
+        */
         // Replace top frame with dummy
         this.cells[0] = dummy;
+    }
+
+    void randomizeCells() {
+        int [][][] newCells = new int[memory][nRows][nCols];
+        // Initialize cells with random selection turned 'on'
+        Random cellChecker = new Random();
+        for (int col = 0; (col < nCols); col++) {
+            for (int row = 0; (row < nRows); row++) {
+                int checkN = cellChecker.nextInt(100);
+                if (checkN < onFrac) {
+                    newCells[0][row][col] = 1;
+                } else {
+                    newCells[0][row][col] = 0;
+                }
+            }
+        }
+
+        // Initialize unused frames with 999 so they can be identified.
+        for (int i = 1; i < memory; i++) {
+            for (int col = 0; (col < nCols); col++) {
+                for (int row = 0; (row < nRows); row++) {
+                    newCells[i][row][col] = 999;
+                }
+            }
+        }
+        this.cells = newCells;
+    }
+
+    void clearCells() {
+        int [][][] newCells = new int[memory][nRows][nCols];
+        // Initialize cells with random selection turned 'on'
+        for (int col = 0; (col < nCols); col++) {
+            for (int row = 0; (row < nRows); row++) {
+                    newCells[0][row][col] = 0;
+            }
+        }
+
+        // Initialize unused frames with 999 so they can be identified.
+        for (int i = 1; i < memory; i++) {
+            for (int col = 0; (col < nCols); col++) {
+                for (int row = 0; (row < nRows); row++) {
+                    newCells[i][row][col] = 999;
+                }
+            }
+        }
+        this.cells = newCells;
     }
 
 
