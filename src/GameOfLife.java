@@ -46,8 +46,6 @@ public class GameOfLife {
                 }
             }
         }
-
-        System.out.println(this.cells[2][0][0]);
     }
 
 
