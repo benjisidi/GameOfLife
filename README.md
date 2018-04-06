@@ -1,5 +1,6 @@
 # GameOfLife
-This is an implementation of Conway's Game of Life in Java. 
+This is an implementation of Conway's Game of Life in Java. It was created as a personal learning project and should not be used as an example of how to code! It is, however, quite fun to play with.
+
 The Game of Life consists of a grid of "cells" and consists of four rules:
  - If a live cell has fewer than two neighbours, it will die of underpopulation.
  - If a live cell has more than three neighbours it will die of overcrowding.
