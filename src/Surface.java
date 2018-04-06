@@ -14,7 +14,6 @@ public class Surface extends JPanel implements ActionListener {
     Surface(State status)  {
         this.status = status;
         this.setPreferredSize(new Dimension(this.status.canvasWidth, this.status.canvasHeight));
-        this.gridPaintColor = this.bgColor; // Grid defaults to off.
         initTimer();
     }
 

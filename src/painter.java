@@ -9,8 +9,6 @@ import java.lang.Math;
             Bug fixing
                 None! YAY!
             Add seeding
-            Make resolution/cell dims intelligent to cope with any combination - x
-            Nicer colour scheme/styling - x
 */
 
 public class painter extends JFrame {
@@ -39,7 +37,9 @@ public class painter extends JFrame {
         this.paintSurface.setBgColor(options.bg);
         this.paintSurface.setCellColor(options.cc);
         this.paintSurface.setGridColor(options.gc);
+        this.paintSurface.toggleGrid(); // Default grid to off.
     }
+
 
     private void initUI() {
         statusbar = new JLabel("");
