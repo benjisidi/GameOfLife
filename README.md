@@ -23,4 +23,4 @@ The Game of Life consists of a grid of "cells" and consists of four rules:
 | up/down arrows | increment/decrement fps|
 
 
-There is also an options file you can use to specify various parameters and change the look of the simulation. You can find it at "options.ini", and it contains its own instructions.
+There is also an options file you can use to specify various parameters and change the look of the simulation. You can find it at "options.ini", and it contains its own instructions. It will be generated when you first run GameOfLife.jar.
