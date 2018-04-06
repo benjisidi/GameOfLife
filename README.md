@@ -12,6 +12,7 @@ The Game of Life consists of a grid of "cells" and consists of four rules:
 ### Controls:
 | Key | Effect |
 | ------ | ------ |
+| ESC | quit |
 | spacebar | play/pause |
 | c | clear board |
 | g  |  show/hide grid |
@@ -20,5 +21,6 @@ The Game of Life consists of a grid of "cells" and consists of four rules:
 | r | randomise board |
 | left/right arrows | step forward/back |
 | up/down arrows | increment/decrement fps|
+
 
 There is also an options file you can use to specify various parameters and change the look of the simulation. You can find it at "options.ini", and it contains its own instructions.
