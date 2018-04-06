@@ -109,6 +109,14 @@ class state {
     void setDisplayIndex(int i){
         this.displayIndex = i;
     }
+
+    int getDisplayIndex() {
+        return this.displayIndex;
+    }
+
+    void addToIndex(int i) {
+        this.displayIndex += i;
+    }
 }
 
 public class painter extends JFrame {
@@ -123,8 +131,7 @@ public class painter extends JFrame {
     private int cellDims = canvasWidth / resolution;
     private Surface paintSurface;
     private boolean running = false;
-    private int displayIndex = 0;
-    private state status = new state(canvasWidth, canvasHeight, cellDims, refreshDelay, displayIndex, GoL);
+    private state status = new state(canvasWidth, canvasHeight, cellDims, refreshDelay, 0, GoL);
 
 
 
@@ -154,12 +161,12 @@ public class painter extends JFrame {
         else {
             this.paintSurface.timer.start();
             this.running = true;
-            this.paintSurface.setIndex(this.displayIndex);
         }
 
     }
 
 
+    /*
     private void newBranch() {
         int [][][] currCells = this.GoL.getCells();
         int cellDimsM = currCells[0].length;
@@ -171,6 +178,7 @@ public class painter extends JFrame {
                 this.displayIndex, cellDimsM - this.displayIndex);
         this.GoL.setCells(dummyMem);
     }
+*/
 
     private boolean isRunning() {
         return this.running;
@@ -181,24 +189,22 @@ public class painter extends JFrame {
     }
 
     private void stepBack() {
-        if (this.displayIndex + 1 < this.GoL.getMemory()) {
-            int[][] candidateFrame = this.GoL.getCells()[this.displayIndex + 1];
+        if (this.status.getDisplayIndex() + 1 < this.GoL.getMemory()) {
+            int[][] candidateFrame = this.GoL.getCells()[this.status.getDisplayIndex() + 1];
             if (candidateFrame[0][0] != 999) {
-                this.displayIndex += 1;//
-                this.paintSurface.setIndex(this.displayIndex);
+                status.addToIndex(1);
                 this.paintSurface.repaint();
             }
         }
-        System.out.print(this.displayIndex + " ");
+        System.out.print(this.status.getDisplayIndex() + " ");
     }
 
     private void stepForward() {
-        if (this.displayIndex > 0) {
-            this.displayIndex -= 1;
-            this.paintSurface.setIndex(this.displayIndex);
+        if (this.status.getDisplayIndex() > 0) {
+            this.status.addToIndex(-1);
             this.paintSurface.repaint();
         }
-        System.out.print(this.displayIndex + " ");
+        System.out.print(this.status.getDisplayIndex() + " ");
     }
 
     private void setFPS (int val) {
@@ -219,9 +225,9 @@ public class painter extends JFrame {
                 }
             }
         }
-        System.arraycopy(stack,this.displayIndex,newStack,0,newStack.length-this.displayIndex);
+        System.arraycopy(stack,this.status.getDisplayIndex(),newStack,0,newStack.length-this.status.getDisplayIndex());
         this.GoL.setCells(newStack);
-        this.displayIndex = 0;
+        this.status.setDisplayIndex(0);
     }//ToDo: finish writing this
 
     class KeyController extends KeyAdapter {
@@ -232,12 +238,12 @@ public class painter extends JFrame {
             switch (keycode) {
 
                 case KeyEvent.VK_SPACE:
-                    if (painter.this.displayIndex != 0) painter.this.updateStack();
+                    if (painter.this.status.getDisplayIndex() != 0) painter.this.updateStack();
                     painter.this.toggleTimer();
                     break;
 
                 case KeyEvent.VK_RIGHT:
-                    if (! painter.this.isRunning() && painter.this.displayIndex == 0) painter.this.updateBoard();
+                    if (! painter.this.isRunning() && painter.this.status.getDisplayIndex() == 0) painter.this.updateBoard();
                     else painter.this.stepForward();
                     break;
 
@@ -261,7 +267,7 @@ public class painter extends JFrame {
                 case KeyEvent.VK_R:
                     if (! painter.this.isRunning()) {
                         painter.this.GoL.randomizeCells();
-                        painter.this.displayIndex = 0;
+                        painter.this.status.setDisplayIndex(0);
                         painter.this.paintSurface.repaint();
                     }
                     break;
@@ -270,7 +276,7 @@ public class painter extends JFrame {
                     if (! painter.this.isRunning()) {
                         painter.this.GoL.clearCells();
                         painter.this.paintSurface.repaint();
-                        painter.this.displayIndex = 0;
+                        painter.this.status.setDisplayIndex(0);
                     }
                     break;
             }
