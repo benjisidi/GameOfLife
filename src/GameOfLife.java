@@ -59,7 +59,23 @@ public class GameOfLife {
         return this.cells;
     }
 
-    void setCells(int [][][] newCells) {this.cells = newCells; }
+    void setCells(int [][][] newCells) {
+        this.cells = newCells;
+    }
+
+    void setOnFrac(int f) {
+        this.onFrac = f;
+    }
+
+    void incrementOnFrac(int f) {
+        this.onFrac += f;
+        if (this.onFrac < 0 ) this.onFrac = 0;
+        if (this.onFrac > 100 ) this.onFrac = 100;
+    }
+
+    float getOnFrac() {
+        return this.onFrac;
+    }
 
     public void clearBoard() {
         this.cells = new int[memory][nRows][nCols];
