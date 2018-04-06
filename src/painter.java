@@ -9,18 +9,8 @@ import java.lang.Math;
             Bug fixing
                 None! YAY!
             Add seeding
-            Add controls:
-                sp  play/pause - x
-                c   clear board - x
-                g   show/hide gc - x
-                m1  toggle cell - x
-                []  increment/decrement random % - x
-                r   randomise board - x
-                LR  step forward back (remember 10/100/1000 states) - x
-                UD  control fps - x
-            Add status bar with rate, generation etc - x
-            Make resolution/cell dims intelligent to cope with any combination
-            Nicer colour scheme/styling
+            Make resolution/cell dims intelligent to cope with any combination - x
+            Nicer colour scheme/styling - x
 */
 
 public class painter extends JFrame {
@@ -33,8 +23,6 @@ public class painter extends JFrame {
     private State status;
 
 
-
-
     private painter() {
         super("Conway's Game of Life in Java");
         ReadIni options = new ReadIni("options.ini");
@@ -43,6 +31,8 @@ public class painter extends JFrame {
         this.canvasHeight = options.height;
         this.resolution = options.resolution;
         this.cellDims = canvasWidth / resolution;
+        this.canvasWidth = cellDims * resolution;
+        this.canvasHeight = cellDims * (canvasHeight/cellDims);
         this.fps = options.fps;
         GoL = new GameOfLife(canvasWidth, canvasHeight, resolution, options.onFrac);
         initUI();
@@ -66,8 +56,6 @@ public class painter extends JFrame {
         this.getContentPane().addMouseListener(mouseControls);
         this.getContentPane().addMouseMotionListener(mouseControls);
         pack();
-
-
     }
 
 
@@ -104,7 +92,6 @@ public class painter extends JFrame {
                 this.paintSurface.repaint();
             }
         }
-        System.out.print(this.status.getDisplayIndex() + " ");
     }
 
     private void stepForward() {
@@ -112,7 +99,6 @@ public class painter extends JFrame {
             this.status.addToIndex(-1);
             this.paintSurface.repaint();
         }
-        System.out.print(this.status.getDisplayIndex() + " ");
     }
 
     private void updateStack() {
@@ -250,25 +236,31 @@ public class painter extends JFrame {
                 this.mouseActive = true;
                 int x = e.getX();
                 int y = e.getY();
-                int[] cellClicked = pixelsToCell(x, y);
-                int index = painter.this.status.getDisplayIndex();
-                int clickedValue = painter.this.GoL.getElement(index, cellClicked[0], cellClicked[1]);
-                int toggledValue =  Math.abs(clickedValue - 1);
-                painter.this.setCell(cellClicked[0], cellClicked[1], toggledValue);
-                this.paintValue = toggledValue;
-                painter.this.paintSurface.repaint();
+                if (x >= 0 && x < painter.this.canvasWidth && y >= 0 && y < painter.this.canvasHeight) {
+                    int[] cellClicked = pixelsToCell(x, y);
+                    int index = painter.this.status.getDisplayIndex();
+                    int clickedValue = painter.this.GoL.getElement(index, cellClicked[0], cellClicked[1]);
+                    int toggledValue = Math.abs(clickedValue - 1);
+                    painter.this.setCell(cellClicked[0], cellClicked[1], toggledValue);
+                    this.paintValue = toggledValue;
+                    painter.this.paintSurface.repaint();
+                }
             }
         }
 
         public void mouseReleased(MouseEvent e) {
             if (!painter.this.isRunning()) {
                 this.mouseActive = false;
-                int index = painter.this.status.getDisplayIndex();
-                int[][] frame = painter.this.GoL.getCells()[index];
-                painter.this.GoL.newStackFromFrame(frame);
-                painter.this.status.setDisplayIndex(0);
-                painter.this.status.setGeneration(0);
-                painter.this.paintSurface.repaint();
+                int x = e.getX();
+                int y = e.getY();
+                if (x >= 0 && x < painter.this.canvasWidth && y >= 0 && y < painter.this.canvasHeight) {
+                    int index = painter.this.status.getDisplayIndex();
+                    int[][] frame = painter.this.GoL.getCells()[index];
+                    painter.this.GoL.newStackFromFrame(frame);
+                    painter.this.status.setDisplayIndex(0);
+                    painter.this.status.setGeneration(0);
+                    painter.this.paintSurface.repaint();
+                }
             }
         }
 
